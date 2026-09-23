@@ -2,14 +2,13 @@ import { Metadata, Viewport } from "next";
 import "../../styles/global.css";
 
 export const metadata: Metadata = {
-  title: "Prompt to Motion Graphics - Remotion",
-  description: "Prompt to Motion Graphics - Remotion",
+  title: "Video Agent Studio",
+  description: "Turn scripts into directed, narrated Remotion videos.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -18,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <body className="bg-background">{children}</body>
     </html>
   );

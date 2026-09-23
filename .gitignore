@@ -37,3 +37,14 @@ next-env.d.ts
 out/
 .env
 build
+
+# video-agent generated artifacts
+/generated/*
+!/generated/.gitkeep
+/output/*
+!/output/.gitkeep
+/public/generated/*
+!/public/generated/.gitkeep
+/public/renders/
+/scripts/imported/
+/.playwright-cli/
