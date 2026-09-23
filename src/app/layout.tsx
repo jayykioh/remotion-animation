@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -18,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body className="bg-background">{children}</body>
+      <body className="bg-background text-foreground font-sans antialiased">{children}</body>
     </html>
   );
 }

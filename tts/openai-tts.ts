@@ -21,6 +21,7 @@ export class OpenAITTSProvider implements TTSProvider {
         input: request.text,
         instructions:
           process.env.OPENAI_TTS_INSTRUCTIONS ||
+          request.direction?.instructions ||
           "Speak clearly with an engaging documentary tone.",
         response_format: "wav",
       }),

@@ -10,11 +10,11 @@ const RequestSchema = z.object({
   title: z.string().max(120),
   script: z.string().min(20).max(30000),
   projectType: z.enum(["fast-summary", "animated-story", "documentary", "history-explainer"]),
-  stylePack: z.enum(["editorial-dark", "paper-collage", "cinematic", "clean-infographic"]),
+  stylePack: z.enum(["editorial-dark", "paper-collage", "cinematic", "storybook-noir", "clean-infographic"]),
   format: z.enum(["9:16", "16:9", "1:1"]),
   language: z.enum(["vi", "en"]),
   llmProvider: z.enum(["heuristic", "openai"]),
-  voiceProvider: z.enum(["system", "openai", "elevenlabs", "fpt", "mock"]),
+  voiceProvider: z.enum(["system", "openai", "elevenlabs", "fpt", "local-http", "mock"]),
   voiceId: z.string().max(200),
 });
 

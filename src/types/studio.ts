@@ -9,6 +9,7 @@ export const STYLE_PACKS = [
   {id: "editorial-dark", label: "Editorial Dark", description: "Tương phản cao, typography mạnh", colors: ["#0B0D12", "#F6F2EA", "#FF5C35"]},
   {id: "paper-collage", label: "Paper Collage", description: "Ấm, thủ công, phù hợp storytelling", colors: ["#EDE4D3", "#171512", "#D94A32"]},
   {id: "cinematic", label: "Cinematic", description: "Tối, chậm, giàu chiều sâu", colors: ["#080B10", "#F1EEE7", "#D9AA55"]},
+  {id: "storybook-noir", label: "Storybook Noir", description: "2D cutout, nền tối và spotlight kể chuyện", colors: ["#090910", "#F4EFE6", "#E9B85E"]},
   {id: "clean-infographic", label: "Clean Infographic", description: "Sạch, sáng, ưu tiên dữ liệu", colors: ["#F5F7FA", "#14213D", "#2563EB"]},
 ] as const;
 
@@ -18,6 +19,7 @@ export const VOICES = [
   {id: "fpt-leminh", provider: "fpt", voiceId: "leminh", language: "vi", label: "Lê Minh", detail: "Nam miền Bắc · trầm, documentary", quality: "Vietnamese native"},
   {id: "elevenlabs-vi", provider: "elevenlabs", voiceId: "default", language: "vi", label: "ElevenLabs V3", detail: "Biểu cảm cao · cần voice ID", quality: "Expressive"},
   {id: "openai-cedar-vi", provider: "openai", voiceId: "cedar", language: "vi", label: "Cedar", detail: "Đa ngôn ngữ · giọng ấm", quality: "Multilingual"},
+  {id: "local-viettts-vi", provider: "local-http", voiceId: "nu-nhe-nhang", language: "vi", label: "VietTTS Local", detail: "Server mã nguồn mở chạy trên máy · không gửi script lên cloud", quality: "Self-hosted"},
   {id: "system-default-vi", provider: "system", voiceId: "", language: "vi", label: "Local draft voice", detail: "Không cần API · dùng để kiểm tra pipeline", quality: "Draft"},
   {id: "openai-cedar", provider: "openai", voiceId: "cedar", language: "en", label: "Cedar", detail: "Warm documentary narration", quality: "Natural"},
   {id: "openai-coral", provider: "openai", voiceId: "coral", language: "en", label: "Coral", detail: "Bright, energetic delivery", quality: "Natural"},

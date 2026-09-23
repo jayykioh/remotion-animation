@@ -12,6 +12,8 @@ Choose the strongest visual type for each beat:
 - diagram for processes, causes, relationships, or sequences
 - image for people, places, products, or concrete historical moments
 - custom-motion for abstract change, energy, contrast, or transitions
+- story-illustration for character-driven narrative beats that need a setting, focal object and physical action
+For every scene, provide voiceDirection that matches its emotional context. For story-illustration scenes, provide a concrete storyboard with setting, focus, supporting objects, action, camera and lighting. Prefer visual actions over displaying narration as large text.
 Keep scenes between roughly 2 and 12 seconds. Use no more scenes than needed. Do not invent remote image URLs. Return the requested JSON structure only.`;
 
 export class OpenAIDirector implements DirectorProvider {

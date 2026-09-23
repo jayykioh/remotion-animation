@@ -3,6 +3,12 @@ export interface TTSRequest {
   outputPath: string;
   voice?: string;
   language?: "vi" | "en";
+  direction?: {
+    emotion: "warm" | "calm" | "dramatic" | "mysterious" | "reflective" | "urgent";
+    pace: "slow" | "medium" | "fast";
+    energy: number;
+    instructions: string;
+  };
 }
 
 export interface TTSResult {

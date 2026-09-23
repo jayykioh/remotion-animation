@@ -24,7 +24,7 @@ export const VideoAgent: React.FC<VideoAgentProps> = ({plan}) => {
           <Sequence key={scene.id} from={start} durationInFrames={scene.durationInFrames} premountFor={plan.fps}>
             <SceneRenderer scene={scene} theme={plan.theme} />
             {scene.audioSrc ? <Audio src={staticFile(scene.audioSrc)} /> : null}
-            <CaptionLayer captions={scene.captions} theme={plan.theme} />
+            <CaptionLayer captions={scene.captions} theme={plan.theme} projectType={plan.production?.projectType} />
           </Sequence>
         );
       })}

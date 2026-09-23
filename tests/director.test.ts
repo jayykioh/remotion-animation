@@ -39,5 +39,7 @@ test("production profile applies the selected story format and visual foundation
   assert.equal(plan.production?.stylePack, "paper-collage");
   assert.equal(plan.production?.language, "vi");
   assert.equal(plan.theme.background, "#EDE4D3");
-  assert.ok(plan.scenes.every((scene) => scene.type === "custom-motion"));
+  assert.ok(plan.scenes.every((scene) => scene.type === "story-illustration"));
+  assert.ok(plan.scenes.every((scene) => scene.storyboard));
+  assert.ok(plan.scenes.every((scene) => scene.voiceDirection));
 });

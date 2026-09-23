@@ -10,7 +10,8 @@ export const SceneFrame: React.FC<{
   theme: RenderPlan["theme"];
   children: ReactNode;
   style?: CSSProperties;
-}> = ({scene, theme, children, style}) => {
+  hideChrome?: boolean;
+}> = ({scene, theme, children, style, hideChrome = false}) => {
   const frame = useCurrentFrame();
   const {durationInFrames} = useVideoConfig();
   const edgeOpacity = interpolate(
@@ -32,7 +33,7 @@ export const SceneFrame: React.FC<{
         ...style,
       }}
     >
-      <div
+      {!hideChrome && <div
         style={{
           position: "absolute",
           top: "4.2%",
@@ -48,7 +49,7 @@ export const SceneFrame: React.FC<{
       >
         <span>{scene.type.replace(/-/gu, " ")}</span>
         <span>{scene.id}</span>
-      </div>
+      </div>}
       {children}
     </AbsoluteFill>
   );

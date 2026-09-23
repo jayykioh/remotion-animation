@@ -15,7 +15,7 @@ export class FptTTSProvider implements TTSProvider {
       headers: {
         api_key: apiKey,
         voice: request.voice || process.env.FPT_TTS_VOICE || "banmai",
-        speed: process.env.FPT_TTS_SPEED || "0",
+        speed: process.env.FPT_TTS_SPEED || (request.direction?.pace === "slow" ? "-1" : request.direction?.pace === "fast" ? "1" : "0"),
         format: "wav",
         "Content-Type": "text/plain; charset=utf-8",
       },

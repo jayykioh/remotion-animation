@@ -6,7 +6,7 @@ export interface DirectorInput {
   fps: number;
   format: "9:16" | "16:9" | "1:1";
   projectType?: "fast-summary" | "animated-story" | "documentary" | "history-explainer";
-  stylePack?: "editorial-dark" | "paper-collage" | "cinematic" | "clean-infographic";
+  stylePack?: "editorial-dark" | "paper-collage" | "cinematic" | "storybook-noir" | "clean-infographic";
   language?: "vi" | "en";
   voiceProvider?: string;
   voiceId?: string;

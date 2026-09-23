@@ -3,6 +3,7 @@ import {OpenAITTSProvider} from "./openai-tts";
 import {SystemTTSProvider} from "./system-tts";
 import {ElevenLabsTTSProvider} from "./elevenlabs-tts";
 import {FptTTSProvider} from "./fpt-tts";
+import {LocalHttpTTSProvider} from "./local-http-tts";
 import type {TTSProvider, TTSRequest, TTSResult} from "./types";
 
 class AutoTTSProvider implements TTSProvider {
@@ -27,8 +28,9 @@ export const createTTSProvider = (name = process.env.TTS_PROVIDER || "auto"): TT
   if (name === "openai") return new OpenAITTSProvider();
   if (name === "elevenlabs") return new ElevenLabsTTSProvider();
   if (name === "fpt") return new FptTTSProvider();
+  if (name === "local-http") return new LocalHttpTTSProvider();
   if (name === "mock") return new MockTTSProvider();
-  throw new Error(`Unknown TTS provider: ${name}. Use auto, system, openai, elevenlabs, fpt, or mock.`);
+  throw new Error(`Unknown TTS provider: ${name}. Use auto, system, openai, elevenlabs, fpt, local-http, or mock.`);
 };
 
 export * from "./types";

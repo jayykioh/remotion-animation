@@ -6,6 +6,7 @@ export const SceneTypeSchema = z.enum([
   "diagram",
   "image",
   "custom-motion",
+  "story-illustration",
 ]);
 
 export type SceneType = z.infer<typeof SceneTypeSchema>;
@@ -26,6 +27,24 @@ export const DirectorSceneSchema = z.object({
   estimatedDurationSeconds: z.number().min(1).max(30),
   chartData: z.array(ChartDatumSchema).max(8).optional(),
   imageUrl: z.string().url().optional(),
+  voiceDirection: z
+    .object({
+      emotion: z.enum(["warm", "calm", "dramatic", "mysterious", "reflective", "urgent"]),
+      pace: z.enum(["slow", "medium", "fast"]),
+      energy: z.number().min(0).max(1),
+      instructions: z.string().min(1),
+    })
+    .optional(),
+  storyboard: z
+    .object({
+      setting: z.enum(["interior", "exterior", "city", "nature", "abstract", "archival"]),
+      focus: z.string().min(1),
+      supportingObjects: z.array(z.string()).max(5),
+      action: z.enum(["reveal", "enter", "move", "transform", "compare", "focus"]),
+      camera: z.enum(["wide", "medium", "close-up", "push-in", "pan"]),
+      lighting: z.enum(["low-key", "warm", "daylight", "spotlight"]),
+    })
+    .optional(),
 });
 
 export const DirectorPlanSchema = z.object({
@@ -42,7 +61,7 @@ export const DirectorPlanSchema = z.object({
   production: z
     .object({
       projectType: z.enum(["fast-summary", "animated-story", "documentary", "history-explainer"]),
-      stylePack: z.enum(["editorial-dark", "paper-collage", "cinematic", "clean-infographic"]),
+      stylePack: z.enum(["editorial-dark", "paper-collage", "cinematic", "storybook-noir", "clean-infographic"]),
       language: z.enum(["vi", "en"]),
       voiceProvider: z.string().optional(),
       voiceId: z.string().optional(),
@@ -58,6 +77,15 @@ export const CaptionSchema = z.object({
   text: z.string(),
   startSeconds: z.number().min(0),
   endSeconds: z.number().positive(),
+  words: z
+    .array(
+      z.object({
+        text: z.string(),
+        startSeconds: z.number().min(0),
+        endSeconds: z.number().positive(),
+      }),
+    )
+    .optional(),
 });
 
 export const RenderSceneSchema = DirectorSceneSchema.extend({

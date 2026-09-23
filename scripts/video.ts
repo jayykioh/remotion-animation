@@ -16,7 +16,7 @@ interface CliOptions {
   voice?: string;
   language?: "vi" | "en";
   projectType?: "fast-summary" | "animated-story" | "documentary" | "history-explainer";
-  stylePack?: "editorial-dark" | "paper-collage" | "cinematic" | "clean-infographic";
+  stylePack?: "editorial-dark" | "paper-collage" | "cinematic" | "storybook-noir" | "clean-infographic";
 }
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -56,17 +56,33 @@ const slugify = (value: string) =>
     .replace(/^-|-$/gu, "")
     .toLowerCase() || "video";
 
-const makeCaptions = (text: string, durationSeconds: number) => {
+type AlignedWord = {text: string; startSeconds: number; endSeconds: number};
+
+const estimateWordAlignment = (text: string, durationSeconds: number): AlignedWord[] => {
   const words = text.split(/\s+/u).filter(Boolean);
-  const chunks: string[] = [];
-  for (let index = 0; index < words.length; index += 5) {
-    chunks.push(words.slice(index, index + 5).join(" "));
+  const totalWeight = words.reduce((sum, word) => sum + Math.max(2, word.length), 0);
+  let cursor = 0;
+  return words.map((word) => {
+    const startSeconds = cursor;
+    cursor += (Math.max(2, word.length) / Math.max(1, totalWeight)) * durationSeconds;
+    return {text: word, startSeconds, endSeconds: cursor};
+  });
+};
+
+const makeCaptionPages = (text: string, durationSeconds: number, alignment?: AlignedWord[]) => {
+  const words = alignment?.length ? alignment : estimateWordAlignment(text, durationSeconds);
+  const pages: Array<{text: string; startSeconds: number; endSeconds: number; words: AlignedWord[]}> = [];
+  let current: AlignedWord[] = [];
+  for (const word of words) {
+    const pageDuration = current.length ? word.endSeconds - current[0].startSeconds : 0;
+    if (current.length >= 7 || (current.length >= 4 && pageDuration > 2.2)) {
+      pages.push({text: current.map((item) => item.text).join(" "), startSeconds: current[0].startSeconds, endSeconds: current.at(-1)!.endSeconds, words: current});
+      current = [];
+    }
+    current.push(word);
   }
-  return chunks.map((caption, index) => ({
-    text: caption,
-    startSeconds: (index / chunks.length) * durationSeconds,
-    endSeconds: ((index + 1) / chunks.length) * durationSeconds,
-  }));
+  if (current.length) pages.push({text: current.map((item) => item.text).join(" "), startSeconds: current[0].startSeconds, endSeconds: current.at(-1)!.endSeconds, words: current});
+  return pages;
 };
 
 const assertNarrationCoverage = (script: string, plan: RenderPlan | {scenes: Array<{narration: string}>}) => {
@@ -128,6 +144,7 @@ const main = async () => {
       outputPath: join(publicAudioDir, audioFileName),
       voice: options.voice,
       language: options.language,
+      direction: scene.voiceDirection,
     });
     providers.add(result.provider);
     const durationSeconds = Math.max(result.durationSeconds + 0.3, 1.2);
@@ -136,9 +153,7 @@ const main = async () => {
       durationSeconds,
       durationInFrames: Math.ceil(durationSeconds * draftPlan.fps),
       audioSrc: `generated/${runId}/${audioFileName}`,
-      captions: result.alignment?.length
-        ? result.alignment
-        : makeCaptions(scene.narration, result.durationSeconds),
+      captions: makeCaptionPages(scene.narration, result.durationSeconds, result.alignment),
     });
   }
 

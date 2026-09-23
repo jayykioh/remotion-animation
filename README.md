@@ -156,6 +156,34 @@ Scene types included in the MVP:
 - `diagram`
 - `image` with an abstract local fallback
 - `custom-motion`
+- `story-illustration`: 2D cutout storytelling with setting, props, camera direction and local spotlight
+
+## Storytelling mode
+
+Choose **Animation kể chuyện** with the **Storybook Noir** style to get the visual language used by the storytelling pipeline. The director now creates two extra layers for every narrative beat:
+
+- `storyboard`: setting, focal subject, supporting objects, physical action, camera and lighting
+- `voiceDirection`: emotion, pace, energy and provider instructions
+
+Subtitles are grouped into readable pages. When a provider returns word timings (currently ElevenLabs), the active word is highlighted; other providers use duration-weighted estimated timings. Try the included story script without API keys:
+
+```bash
+npm run video -- scripts/story-demo.md --tts mock --project-type animated-story --style storybook-noir --output output/story-demo.mp4
+```
+
+### Self-hosted Vietnamese TTS
+
+The project supports an OpenAI-compatible local speech endpoint:
+
+```env
+TTS_PROVIDER=local-http
+LOCAL_TTS_BASE_URL=http://127.0.0.1:8298/v1
+LOCAL_TTS_API_KEY=viet-tts
+LOCAL_TTS_MODEL=tts-1
+LOCAL_TTS_VOICE=nu-nhe-nhang
+```
+
+This adapter can connect to a real self-hosted engine such as `dangvansam/viet-tts`. The `GitHub30/asr-tts-vietnamese` PHP wrapper is deliberately not embedded: it contains no model or offline inference code and depends on third-party demo endpoints, including a hardcoded Zalo demo cookie.
 
 The director and TTS interfaces are intentionally small. A new local model, hosted LLM, or voice engine only needs to implement `DirectorProvider` or `TTSProvider`; the timeline and render layers stay unchanged.
 

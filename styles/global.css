@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 :root {
+  --font-sans: "Plus Jakarta Sans", "Inter", "Segoe UI", Arial, sans-serif;
   --unfocused-border-color: #333;
 
   --geist-border-radius: 5px;
@@ -14,29 +15,32 @@
 
   --radius: 0.625rem;
 
-  /* Dark theme colors */
-  --background: #0a0a0a;
+  /* Hallmark · macrostructure: 05-workbench · genre: atmospheric */
+  --background: #090a0d;
   --background-elevated: #1a1a1a;
   --background-editor: #1e1e1e;
   --background-editor-header: #2d2d2d;
   --background-error: #2a1a1a;
-  --foreground: #ffffff;
-  --primary: #0B84F3;
-  --primary-hover: #0a75d9;
-  --primary-foreground: #ffffff;
+  --foreground: #f5f1e8;
+  --primary: #ff6542;
+  --primary-hover: #ff8062;
+  --primary-foreground: #000000;
   --secondary: #333;
   --secondary-foreground: #ffffff;
   --muted: #111;
-  --muted-foreground: #888;
-  --muted-foreground-dim: #666;
-  --accent: #2a2a2a;
-  --accent-foreground: #ffffff;
+  --muted-foreground: rgba(255, 255, 255, 0.6);
+  --muted-foreground-dim: rgba(255, 255, 255, 0.4);
+  --accent: #ff6542;
+  --accent-hover: #ff8062;
+  --accent-foreground: #000000;
   --destructive: #dc2626;
   --destructive-foreground: #f87171;
-  --border: #333;
-  --border-dim: #222;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-dim: rgba(255, 255, 255, 0.05);
   --input: #0f0f0f;
-  --ring: #333;
+  --ring: rgba(255, 101, 66, 0.5);
+  --surface-1: rgba(255, 255, 255, 0.035);
+  --surface-2: rgba(255, 255, 255, 0.08);
 }
 
 @theme {
@@ -131,6 +135,8 @@ select:not(:disabled) {
   --color-border-dim: var(--border-dim);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
 }
 
 @layer base {

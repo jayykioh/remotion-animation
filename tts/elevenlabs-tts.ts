@@ -45,6 +45,14 @@ export class ElevenLabsTTSProvider implements TTSProvider {
           text: request.text,
           model_id: process.env.ELEVENLABS_MODEL || "eleven_v3",
           language_code: request.language || process.env.TTS_LANGUAGE || "vi",
+          voice_settings: request.direction
+            ? {
+                stability: Math.max(0.25, 0.72 - request.direction.energy * 0.35),
+                similarity_boost: 0.78,
+                style: request.direction.energy,
+                speed: request.direction.pace === "slow" ? 0.9 : request.direction.pace === "fast" ? 1.08 : 1,
+              }
+            : undefined,
         }),
       },
     );
