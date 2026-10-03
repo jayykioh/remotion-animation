@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 export async function GET() {
   return Response.json({
     providers: {
+      auto: true,
       system: true,
       openai: Boolean(process.env.OPENAI_API_KEY),
       fpt: Boolean(process.env.FPT_TTS_API_KEY),

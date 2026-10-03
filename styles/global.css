@@ -2,45 +2,45 @@
 @import "tw-animate-css";
 
 :root {
-  --font-sans: "Plus Jakarta Sans", "Inter", "Segoe UI", Arial, sans-serif;
-  --unfocused-border-color: #333;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, sans-serif;
+  --unfocused-border-color: #27272a;
 
-  --geist-border-radius: 5px;
+  --geist-border-radius: 6px;
   --geist-quarter-pad: 6px;
   --geist-half-pad: 12px;
   --geist-pad: 24px;
   --geist-font: "Inter";
 
-  --geist-error: #dc2626;
+  --geist-error: #ef4444;
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
-  /* Hallmark · macrostructure: 05-workbench · genre: atmospheric */
-  --background: #090a0d;
-  --background-elevated: #1a1a1a;
-  --background-editor: #1e1e1e;
-  --background-editor-header: #2d2d2d;
-  --background-error: #2a1a1a;
-  --foreground: #f5f1e8;
-  --primary: #ff6542;
-  --primary-hover: #ff8062;
-  --primary-foreground: #000000;
-  --secondary: #333;
-  --secondary-foreground: #ffffff;
-  --muted: #111;
-  --muted-foreground: rgba(255, 255, 255, 0.6);
-  --muted-foreground-dim: rgba(255, 255, 255, 0.4);
-  --accent: #ff6542;
-  --accent-hover: #ff8062;
-  --accent-foreground: #000000;
-  --destructive: #dc2626;
-  --destructive-foreground: #f87171;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-dim: rgba(255, 255, 255, 0.05);
-  --input: #0f0f0f;
-  --ring: rgba(255, 101, 66, 0.5);
-  --surface-1: rgba(255, 255, 255, 0.035);
-  --surface-2: rgba(255, 255, 255, 0.08);
+  /* Apple Cupertino Pro Minimalist Palette */
+  --background: #09090b;
+  --background-elevated: #111114;
+  --background-editor: #16161a;
+  --background-editor-header: #1c1c21;
+  --background-error: #221215;
+  --foreground: #f4f4f5;
+  --primary: #0a84ff;
+  --primary-hover: #409cff;
+  --primary-foreground: #ffffff;
+  --secondary: #222226;
+  --secondary-foreground: #f4f4f5;
+  --muted: #161619;
+  --muted-foreground: rgba(244, 244, 245, 0.55);
+  --muted-foreground-dim: rgba(244, 244, 245, 0.35);
+  --accent: #0a84ff;
+  --accent-hover: #409cff;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #fca5a5;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-dim: rgba(255, 255, 255, 0.04);
+  --input: #121215;
+  --ring: rgba(10, 132, 255, 0.35);
+  --surface-1: rgba(255, 255, 255, 0.025);
+  --surface-2: rgba(255, 255, 255, 0.055);
 }
 
 @theme {
@@ -94,7 +94,7 @@ select:not(:disabled) {
 }
 
 ::selection {
-  background: rgba(255, 101, 66, 0.35);
+  background: rgba(10, 132, 255, 0.3);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -10,7 +10,7 @@ const RequestSchema = z.object({
   stylePack: z.enum(["editorial-dark", "paper-collage", "cinematic", "storybook-noir", "clean-infographic"]),
   format: z.enum(["9:16", "16:9", "1:1"]),
   language: z.enum(["vi", "en"]),
-  llmProvider: z.enum(["heuristic", "openai"]),
+  llmProvider: z.enum(["heuristic", "openai", "gemini"]),
   voiceProvider: z.string(),
   voiceId: z.string(),
 });

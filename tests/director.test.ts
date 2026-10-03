@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {test} from "node:test";
 import {HeuristicDirector} from "../director/heuristic-director";
 import {DirectorPlanSchema} from "../director/schema";
+import {parseStructuredStory} from "../director/structured-script";
 
 test("heuristic director creates a valid, mixed scene plan", async () => {
   const director = new HeuristicDirector();
@@ -42,4 +43,13 @@ test("production profile applies the selected story format and visual foundation
   assert.ok(plan.scenes.every((scene) => scene.type === "story-illustration"));
   assert.ok(plan.scenes.every((scene) => scene.storyboard));
   assert.ok(plan.scenes.every((scene) => scene.voiceDirection));
+});
+
+test("structured story keeps narration separate from visual direction", () => {
+  const story = parseStructuredStory(`### Chiếc đèn\n\n**Scene 1**\n\n**Lời kể:**\nTèo nhìn qua sông.\n\n**Hình ảnh:**\nMột ngọn đèn trôi trên nước.\n\n**Scene 2**\n\n**Lời kể:**\nBà kéo rèm lại.\n\n**Hình ảnh:**\nCăn phòng tối dần.`);
+  assert.equal(story?.title, "Chiếc đèn");
+  assert.equal(story?.scenes.length, 2);
+  assert.equal(story?.scenes[0].narration, "Tèo nhìn qua sông.");
+  assert.equal(story?.scenes[0].visualIntent, "Một ngọn đèn trôi trên nước.");
+  assert.ok(!story?.scenes[0].narration.includes("Hình ảnh"));
 });

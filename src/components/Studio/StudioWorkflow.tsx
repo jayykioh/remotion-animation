@@ -11,37 +11,95 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
+  BarChart3,
   Check,
+  CheckCircle2,
   ChevronRight,
   CirclePlay,
+  Clapperboard,
+  Cpu,
   FileText,
   Film,
+  Image as ImageIcon,
+  KeyRound,
   Loader2,
   Mic2,
+  Monitor,
   MonitorPlay,
-  Save,
+  Smartphone,
   Sparkles,
+  Square,
+  Type as TypeIcon,
   Upload,
   WandSparkles,
 } from "lucide-react";
-import {useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 
 const STEPS = [
-  {label: "Project", description: "Mục tiêu và định dạng"},
-  {label: "Script", description: "Nội dung và ngôn ngữ"},
-  {label: "Voice & style", description: "Giọng đọc và visual"},
-  {label: "Draft", description: "Duyệt scene và render"},
+  {label: "Dự án", description: "Mục tiêu và tỷ lệ"},
+  {label: "Kịch bản", description: "Nội dung và ngôn ngữ"},
+  {label: "Giọng & Visual", description: "Audio và phong cách"},
+  {label: "Kiểm duyệt", description: "Storyboard và render"},
 ] as const;
 
 type ProviderStatus = Record<string, boolean>;
 
 const providerLabel: Record<string, string> = {
+  auto: "Auto local",
   system: "Local",
   openai: "OpenAI",
   fpt: "FPT.AI",
   elevenlabs: "ElevenLabs",
   "local-http": "Local TTS",
 };
+
+interface SceneMeta {
+  label: string;
+  icon: React.ComponentType<{className?: string}>;
+  badgeBg: string;
+  textCol: string;
+}
+
+const SCENE_TYPE_META: Record<string, SceneMeta> = {
+  "story-illustration": {
+    label: "Story Illustration",
+    icon: Sparkles,
+    badgeBg: "bg-purple-500/10 border-purple-500/20",
+    textCol: "text-purple-300",
+  },
+  diagram: {
+    label: "Diagram & Data",
+    icon: BarChart3,
+    badgeBg: "bg-sky-500/10 border-sky-500/20",
+    textCol: "text-sky-300",
+  },
+  "custom-motion": {
+    label: "Custom Motion",
+    icon: Clapperboard,
+    badgeBg: "bg-amber-500/10 border-amber-500/20",
+    textCol: "text-amber-300",
+  },
+  image: {
+    label: "Image Frame",
+    icon: ImageIcon,
+    badgeBg: "bg-rose-500/10 border-rose-500/20",
+    textCol: "text-rose-300",
+  },
+  text: {
+    label: "Typography Beat",
+    icon: TypeIcon,
+    badgeBg: "bg-emerald-500/10 border-emerald-500/20",
+    textCol: "text-emerald-300",
+  },
+};
+
+const sceneTypeMeta = (type: string): SceneMeta =>
+  SCENE_TYPE_META[type] ?? {
+    label: type.replace(/-/g, " "),
+    icon: Film,
+    badgeBg: "bg-white/5 border-white/10",
+    textCol: "text-neutral-400",
+  };
 
 export function StudioWorkflow() {
   const [step, setStep] = useState(0);
@@ -52,7 +110,7 @@ export function StudioWorkflow() {
   const [outputPath, setOutputPath] = useState<string | null>(null);
   const [busy, setBusy] = useState<"draft" | "render" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [providers, setProviders] = useState<ProviderStatus>({system: true});
+  const [providers, setProviders] = useState<ProviderStatus>({auto: true, system: true});
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -67,7 +125,13 @@ export function StudioWorkflow() {
     setHydrated(true);
     fetch("/api/workflow/config")
       .then((response) => response.json())
-      .then((data) => setProviders(data.providers || {system: true}))
+      .then((data) => {
+        const nextProviders = data.providers || {auto: true, system: true};
+        setProviders(nextProviders);
+        setForm((current) => current.voiceOptionId === "fpt-banmai" && !nextProviders.fpt
+          ? {...current, voiceOptionId: "auto-draft-vi"}
+          : current);
+      })
       .catch(() => undefined);
   }, []);
 
@@ -163,25 +227,35 @@ export function StudioWorkflow() {
 
   return (
     <main className="min-h-dvh bg-background text-foreground">
-      <header className="h-20 border-b border-border/60 px-5 lg:px-8 flex items-center justify-between bg-background/80 backdrop-blur-xl">
+      <header className="h-14 border-b border-border/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between bg-background/80 backdrop-blur-2xl sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-accent text-accent-foreground grid place-items-center shadow-[0_8px_30px_var(--color-ring)]">
-            <Film className="h-5 w-5" aria-hidden="true" />
+          <div className="h-8 w-8 rounded-lg bg-surface-2 border border-border text-foreground grid place-items-center shadow-xs">
+            <Film className="h-4 w-4" aria-hidden="true" />
           </div>
-          <div>
-            <div className="font-semibold tracking-tight">Video Agent Studio</div>
-            <div className="text-xs text-muted-foreground">Local-first Remotion workflow</div>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold tracking-tight text-sm text-foreground">Video Agent Studio</span>
+            <span className="hidden sm:inline-flex rounded-full bg-surface-2 border border-border/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              Remotion Engine
+            </span>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-          <Save className="h-4 w-4" aria-hidden="true" />
-          Draft tự động lưu
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Tự động lưu</span>
+          </div>
+          <div className="text-[11px] font-mono text-muted-foreground bg-surface-1 border border-border/60 rounded-md px-2 py-0.5">
+            {form.format}
+          </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1500px] grid min-h-[calc(100dvh-80px)] lg:grid-cols-[260px_minmax(0,1fr)_400px]">
-        <aside className="border-b lg:border-b-0 lg:border-r border-border/60 p-5 lg:p-7">
-          <nav aria-label="Quy trình tạo video" className="grid grid-cols-4 gap-2 lg:grid-cols-1 lg:gap-1 relative">
+      <div className="mx-auto max-w-[1520px] grid min-h-[calc(100dvh-56px)] lg:grid-cols-[240px_minmax(0,1fr)_390px]">
+        <aside className="border-b lg:border-b-0 lg:border-r border-border/60 p-4 lg:p-6 bg-surface-1/30">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-3 hidden lg:block px-2">
+            Quy trình
+          </div>
+          <nav aria-label="Quy trình tạo video" className="grid grid-cols-4 gap-1.5 lg:grid-cols-1 lg:gap-1 relative">
             <div className="hidden lg:block absolute left-[19px] top-6 bottom-6 w-px bg-border/40" aria-hidden="true" />
             {STEPS.map((item, index) => {
               const active = index === step;
@@ -192,15 +266,27 @@ export function StudioWorkflow() {
                   type="button"
                   onClick={() => index <= step && setStep(index)}
                   disabled={index > step}
-                  className={`relative min-h-[44px] rounded-xl p-2 lg:p-3 text-left flex items-center gap-3 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${active ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:bg-surface-1 hover:text-foreground disabled:hover:bg-transparent disabled:opacity-50"}`}
+                  className={`relative min-h-[44px] rounded-xl p-2.5 text-left flex items-center gap-3 transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                    active
+                      ? "bg-surface-2 border border-border text-foreground shadow-xs"
+                      : "border border-transparent text-muted-foreground hover:bg-surface-1 hover:text-foreground disabled:hover:bg-transparent disabled:opacity-40"
+                  }`}
                   aria-current={active ? "step" : undefined}
                 >
-                  <span className={`relative z-10 h-7 w-7 shrink-0 rounded-full grid place-items-center text-xs font-semibold transition-colors duration-200 ${active ? "bg-accent text-accent-foreground" : complete ? "bg-emerald-400 text-emerald-950" : "bg-background border border-border"}`}>
-                    {complete ? <Check className="h-4 w-4" aria-hidden="true" /> : index + 1}
+                  <span
+                    className={`relative z-10 h-6 w-6 shrink-0 rounded-full grid place-items-center text-xs font-medium transition-colors ${
+                      active
+                        ? "bg-foreground text-background font-semibold"
+                        : complete
+                        ? "bg-surface-2 text-foreground border border-border"
+                        : "bg-surface-1 text-muted-foreground/60 border border-border/50"
+                    }`}
+                  >
+                    {complete ? <Check className="h-3 w-3" aria-hidden="true" /> : index + 1}
                   </span>
-                  <span className="hidden lg:block">
-                    <span className="block text-sm font-medium">{item.label}</span>
-                    <span className="block text-[11px] text-muted-foreground mt-0.5">{item.description}</span>
+                  <span className="hidden lg:block min-w-0">
+                    <span className={`block text-xs font-medium truncate ${active ? "text-foreground" : "text-muted-foreground"}`}>{item.label}</span>
+                    <span className="block text-[11px] text-muted-foreground/70 truncate mt-0.5">{item.description}</span>
                   </span>
                 </button>
               );
@@ -211,226 +297,460 @@ export function StudioWorkflow() {
         <section className="min-w-0 p-5 sm:p-8 lg:p-10 overflow-y-auto">
           <div className="mx-auto max-w-3xl">
             <div className="mb-8">
-              <div className="text-xs uppercase tracking-[0.24em] text-accent">Bước {step + 1} / {STEPS.length}</div>
-              <h1 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-[-0.035em]">
-                {step === 0 && "Bạn muốn tạo video dạng nào?"}
-                {step === 1 && "Đưa script vào dự án"}
-                {step === 2 && "Chọn giọng đọc và visual style"}
-                {step === 3 && "Duyệt draft trước khi render"}
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/70">Bước {step + 1} / {STEPS.length}</div>
+              <h1 className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                {step === 0 && "Mục tiêu & Định dạng dự án"}
+                {step === 1 && "Nội dung kịch bản video"}
+                {step === 2 && "Giọng đọc & Visual style"}
+                {step === 3 && "Storyboard & Render thành phẩm"}
               </h1>
-              <p className="mt-3 text-sm sm:text-base leading-7 text-muted-foreground max-w-2xl">
-                {step === 0 && "Thông tin này giúp director chọn nhịp kể, loại scene và tỷ lệ khung hình phù hợp."}
-                {step === 1 && "Bạn có thể dán nội dung hoặc import file Markdown. Script gốc luôn được giữ nguyên trong scene plan."}
-                {step === 2 && "Provider chưa có API key vẫn có thể được chọn, nhưng cần cấu hình trước khi render."}
-                {step === 3 && "Director tạo scene plan trước. Bạn kiểm tra cấu trúc rồi mới chạy TTS và Remotion render."}
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground max-w-2xl">
+                {step === 0 && "Thông tin này giúp Director phân bổ nhịp kể, tỷ lệ khung hình và template animation phù hợp."}
+                {step === 1 && "Dán kịch bản hoặc import Markdown/TXT. Cấu trúc nội dung gốc luôn được bảo toàn."}
+                {step === 2 && "Chọn giọng đọc TTS và visual phong cách đồ họa. Provider chưa có API key có thể dùng local draft."}
+                {step === 3 && "Kiểm tra storyboard phân cảnh từng scene, đạo cụ, voice direction trước khi kích hoạt render."}
               </p>
             </div>
 
             {step === 0 && (
-              <div className="space-y-8">
-                <label className="block">
-                  <span className="text-sm font-medium">Tên project</span>
+              <div className="space-y-7">
+                <div>
+                  <label htmlFor="project-title" className="block text-xs font-medium text-foreground mb-2">Tên dự án video</label>
                   <input
+                    id="project-title"
                     value={form.title}
                     onChange={(event) => update("title", event.target.value)}
                     placeholder="Ví dụ: Vì sao Apple đã trở lại"
-                    className="mt-2 h-12 w-full rounded-xl border border-border bg-surface-1 px-4 text-base outline-none transition-all duration-200 focus:border-accent focus:ring-2 focus:ring-accent/20 placeholder:text-muted-foreground/50"
+                    className="h-11 w-full rounded-xl border border-border bg-surface-1 px-4 text-sm text-foreground outline-none transition-all focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 placeholder:text-muted-foreground/50"
                   />
-                </label>
+                </div>
                 <fieldset>
-                  <legend className="text-sm font-medium mb-3">Project type</legend>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {PROJECT_TYPES.map((type) => (
-                      <button
-                        key={type.id}
-                        type="button"
-                        onClick={() => update("projectType", type.id)}
-                        className={`min-h-[128px] rounded-2xl border p-5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${form.projectType === type.id ? "border-accent bg-accent/10" : "border-border bg-surface-1 hover:border-border/80 hover:bg-surface-2"}`}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <span className="font-semibold">{type.label}</span>
-                          {form.projectType === type.id && <Check className="h-5 w-5 text-accent" aria-hidden="true" />}
-                        </div>
-                        <p className="mt-3 text-sm leading-6 text-muted-foreground">{type.description}</p>
-                      </button>
-                    ))}
+                  <legend className="text-xs font-medium text-foreground mb-2.5">Loại hình sản xuất</legend>
+                  <div className="grid sm:grid-cols-2 gap-2.5">
+                    {PROJECT_TYPES.map((type) => {
+                      const isSelected = form.projectType === type.id;
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          onClick={() => update("projectType", type.id)}
+                          className={`rounded-xl border p-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                            isSelected
+                              ? "border-foreground/40 bg-surface-2 text-foreground shadow-xs ring-1 ring-foreground/20"
+                              : "border-border/80 bg-surface-1 text-muted-foreground hover:border-border hover:bg-surface-2"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-sm font-medium ${isSelected ? "text-foreground" : "text-foreground/90"}`}>{type.label}</span>
+                            {isSelected ? (
+                              <span className="h-4 w-4 rounded-full bg-foreground text-background grid place-items-center">
+                                <Check className="h-2.5 w-2.5" />
+                              </span>
+                            ) : (
+                              <span className="h-4 w-4 rounded-full border border-border" />
+                            )}
+                          </div>
+                          <p className="mt-2 text-xs leading-5 text-muted-foreground">{type.description}</p>
+                        </button>
+                      );
+                    })}
                   </div>
                 </fieldset>
                 <fieldset>
-                  <legend className="text-sm font-medium mb-3">Tỷ lệ video</legend>
-                  <div className="grid grid-cols-3 gap-3">
-                    {(["9:16", "16:9", "1:1"] as const).map((format) => (
-                      <button key={format} type="button" onClick={() => update("format", format)} className={`min-h-[48px] rounded-xl border text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${form.format === format ? "border-accent bg-accent/10 text-accent" : "border-border bg-surface-1 hover:bg-surface-2 hover:border-border/80"}`}>{format}</button>
-                    ))}
+                  <legend className="text-xs font-medium text-foreground mb-2.5">Tỷ lệ khung hình</legend>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {[
+                      {id: "9:16", label: "9:16 Dọc", sub: "TikTok / Shorts / Reels", icon: Smartphone},
+                      {id: "16:9", label: "16:9 Ngang", sub: "YouTube / Landscape", icon: Monitor},
+                      {id: "1:1", label: "1:1 Vuông", sub: "Square / Social Feed", icon: Square},
+                    ].map(({id, label, sub, icon: Icon}) => {
+                      const isSelected = form.format === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => update("format", id as StudioFormState["format"])}
+                          className={`rounded-xl border p-3 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                            isSelected
+                              ? "border-foreground/40 bg-surface-2 text-foreground ring-1 ring-foreground/20 shadow-xs"
+                              : "border-border/80 bg-surface-1 text-muted-foreground hover:border-border hover:bg-surface-2"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <Icon className={`h-4 w-4 ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
+                            <span className="text-xs font-mono font-medium">{id}</span>
+                          </div>
+                          <div className={`mt-2 text-xs font-medium ${isSelected ? "text-foreground" : "text-foreground/80"}`}>{label}</div>
+                          <div className="text-[10px] text-muted-foreground/70 truncate mt-0.5">{sub}</div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </fieldset>
               </div>
             )}
 
             {step === 1 && (
-              <div className="space-y-6">
-                <div className="flex flex-wrap gap-3">
+              <div className="space-y-5">
+                <div className="inline-flex rounded-xl bg-surface-1 p-1 border border-border/80">
                   {(["vi", "en"] as const).map((language) => (
-                    <button key={language} type="button" onClick={() => chooseLanguage(language)} className={`min-h-[44px] px-5 rounded-full border text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${form.language === language ? "border-accent bg-accent/10 text-accent" : "border-border hover:bg-surface-1 hover:border-border/80"}`}>
+                    <button
+                      key={language}
+                      type="button"
+                      onClick={() => chooseLanguage(language)}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        form.language === language
+                          ? "bg-foreground text-background shadow-xs font-semibold"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
                       {language === "vi" ? "Tiếng Việt" : "English"}
                     </button>
                   ))}
                 </div>
-                <div className="rounded-2xl border border-border bg-surface-1 overflow-hidden focus-within:border-accent/50 focus-within:ring-1 focus-within:ring-accent/50 transition-all duration-200">
-                  <div className="min-h-[56px] border-b border-border/60 px-4 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground"><FileText className="h-4 w-4" /> Script</div>
-                    <button type="button" onClick={() => fileRef.current?.click()} className="min-h-[44px] flex items-center gap-2 text-sm text-accent hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 rounded-lg px-2 transition-colors">
-                      <Upload className="h-4 w-4" /> Import .md / .txt
+                <div className="rounded-2xl border border-border bg-surface-1 overflow-hidden focus-within:border-foreground/30 transition-all duration-200">
+                  <div className="h-11 border-b border-border/60 px-4 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5" />
+                      <span className="font-medium">Script Canvas</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="flex items-center gap-1.5 text-foreground hover:text-foreground/80 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-md px-2 py-1"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      <span>Import .md / .txt</span>
                     </button>
                     <input ref={fileRef} type="file" accept=".md,.txt,text/plain,text/markdown" onChange={(event) => importScript(event.target.files?.[0])} className="hidden" />
                   </div>
                   <textarea
                     value={form.script}
                     onChange={(event) => update("script", event.target.value)}
-                    placeholder="Dán script hoàn chỉnh vào đây..."
-                    className="w-full min-h-[430px] resize-y bg-transparent p-5 text-base leading-8 outline-none placeholder:text-muted-foreground/40"
+                    placeholder="Dán nội dung kịch bản hoàn chỉnh vào đây..."
+                    className="w-full min-h-[400px] resize-y bg-transparent p-4 sm:p-5 text-sm sm:text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/40 font-sans"
                   />
-                  <div className="min-h-[48px] border-t border-border/60 px-5 flex items-center justify-between text-xs text-muted-foreground/60">
+                  <div className="h-10 border-t border-border/60 px-4 sm:px-5 flex items-center justify-between text-xs text-muted-foreground/70">
                     <span>{wordCount.toLocaleString()} từ</span>
-                    <span>Ước tính khoảng {estimatedMinutes} phút</span>
+                    <span>Ước tính khoảng ~{estimatedMinutes} phút đọc</span>
                   </div>
                 </div>
               </div>
             )}
 
             {step === 2 && (
-              <div className="space-y-9">
+              <div className="space-y-8">
                 <fieldset>
-                  <legend className="text-sm font-medium mb-3">Voice cho {form.language === "vi" ? "tiếng Việt" : "English"}</legend>
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  <legend className="text-xs font-medium text-foreground mb-2.5">
+                    Giọng đọc ({form.language === "vi" ? "Tiếng Việt" : "English"})
+                  </legend>
+                  <div className="grid sm:grid-cols-2 gap-2.5">
                     {availableVoices.map((voice) => {
                       const configured = providers[voice.provider] ?? false;
+                      const isSelected = form.voiceOptionId === voice.id;
                       return (
-                        <button key={voice.id} type="button" onClick={() => update("voiceOptionId", voice.id)} className={`min-h-[112px] rounded-2xl border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${form.voiceOptionId === voice.id ? "border-accent bg-accent/10" : "border-border bg-surface-1 hover:border-border/80 hover:bg-surface-2"}`}>
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3"><Mic2 className="h-5 w-5 text-muted-foreground" /><span className="font-semibold">{voice.label}</span></div>
-                            <span className={`text-[10px] uppercase tracking-wider rounded-full px-2 py-1 ${configured ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-300/10 text-amber-200"}`}>{configured ? "Ready" : voice.provider === "local-http" ? "Server off" : "API key"}</span>
+                        <button
+                          key={voice.id}
+                          type="button"
+                          onClick={() => update("voiceOptionId", voice.id)}
+                          className={`rounded-xl border p-3.5 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                            isSelected
+                              ? "border-foreground/40 bg-surface-2 text-foreground ring-1 ring-foreground/20 shadow-xs"
+                              : "border-border/80 bg-surface-1 text-muted-foreground hover:border-border hover:bg-surface-2"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Mic2 className={`h-4 w-4 ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
+                              <span className={`text-sm font-medium ${isSelected ? "text-foreground" : "text-foreground/90"}`}>{voice.label}</span>
+                            </div>
+                            <span className={`inline-flex items-center gap-1.5 text-[10px] font-medium rounded-full px-2 py-0.5 ${
+                              configured
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : "bg-surface-2 text-muted-foreground border border-border"
+                            }`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${configured ? "bg-emerald-400" : "bg-muted-foreground/50"}`} />
+                              {configured ? "Sẵn sàng" : voice.provider === "local-http" ? "Server off" : "Cần key"}
+                            </span>
                           </div>
-                          <div className="mt-3 text-sm text-muted-foreground">{voice.detail}</div>
-                          <div className="mt-2 text-[11px] text-muted-foreground/60">{providerLabel[voice.provider]} · {voice.quality}</div>
+                          <div className="mt-2 text-xs text-muted-foreground line-clamp-1">{voice.detail}</div>
+                          <div className="mt-1 text-[11px] text-muted-foreground/60">{providerLabel[voice.provider]} · {voice.quality}</div>
                         </button>
                       );
                     })}
                   </div>
                   {selectedVoice.provider === "elevenlabs" && (
-                    <label className="block mt-4">
-                      <span className="text-sm text-muted-foreground">ElevenLabs Voice ID</span>
-                      <input value={form.elevenLabsVoiceId} onChange={(event) => update("elevenLabsVoiceId", event.target.value)} placeholder="Dùng ELEVENLABS_VOICE_ID trong .env nếu để trống" className="mt-2 h-[48px] w-full rounded-xl border border-border bg-surface-1 px-4 outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20 placeholder:text-muted-foreground/40" />
-                    </label>
+                    <div className="mt-3">
+                      <label htmlFor="elevenlabs-voice-id" className="block text-xs font-medium text-foreground mb-1.5">ElevenLabs Voice ID</label>
+                      <input
+                        id="elevenlabs-voice-id"
+                        value={form.elevenLabsVoiceId}
+                        onChange={(event) => update("elevenLabsVoiceId", event.target.value)}
+                        placeholder="Dùng ELEVENLABS_VOICE_ID trong .env nếu để trống"
+                        className="h-10 w-full rounded-xl border border-border bg-surface-1 px-3.5 text-xs text-foreground outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 placeholder:text-muted-foreground/50"
+                      />
+                    </div>
                   )}
                 </fieldset>
 
                 <fieldset>
-                  <legend className="text-sm font-medium mb-3">Visual style foundation</legend>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {STYLE_PACKS.map((style) => (
-                      <button key={style.id} type="button" onClick={() => update("stylePack", style.id)} className={`rounded-2xl border p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${form.stylePack === style.id ? "border-accent bg-accent/10" : "border-border bg-surface-1 hover:border-border/80 hover:bg-surface-2"}`}>
-                        <div className="flex gap-1.5 mb-4" aria-hidden="true">{style.colors.map((color) => <span key={color} className="h-5 flex-1 rounded-md border border-border/40" style={{backgroundColor: color}} />)}</div>
-                        <div className="font-semibold">{style.label}</div>
-                        <div className="mt-1 text-sm text-muted-foreground/70">{style.description}</div>
-                      </button>
-                    ))}
+                  <legend className="text-xs font-medium text-foreground mb-2.5">Visual Style Pack</legend>
+                  <div className="grid sm:grid-cols-2 gap-2.5">
+                    {STYLE_PACKS.map((style) => {
+                      const isSelected = form.stylePack === style.id;
+                      return (
+                        <button
+                          key={style.id}
+                          type="button"
+                          onClick={() => update("stylePack", style.id)}
+                          className={`rounded-xl border p-3.5 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                            isSelected
+                              ? "border-foreground/40 bg-surface-2 text-foreground ring-1 ring-foreground/20 shadow-xs"
+                              : "border-border/80 bg-surface-1 text-muted-foreground hover:border-border hover:bg-surface-2"
+                          }`}
+                        >
+                          <div className="flex gap-1.5 mb-3" aria-hidden="true">
+                            {style.colors.map((color) => (
+                              <span key={color} className="h-3.5 flex-1 rounded-sm border border-border/40 shadow-xs" style={{backgroundColor: color}} />
+                            ))}
+                          </div>
+                          <div className={`text-sm font-medium ${isSelected ? "text-foreground" : "text-foreground/90"}`}>{style.label}</div>
+                          <div className="mt-1 text-xs text-muted-foreground leading-normal">{style.description}</div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </fieldset>
 
-                <label className="flex items-center justify-between gap-5 rounded-2xl border border-border p-4 bg-surface-1 hover:bg-surface-2 transition-colors">
-                  <span><span className="block text-sm font-medium">AI Director</span><span className="block mt-1 text-xs text-muted-foreground/70">OpenAI phân tích semantic tốt hơn; heuristic chạy local.</span></span>
-                  <select value={form.llmProvider} onChange={(event) => update("llmProvider", event.target.value as StudioFormState["llmProvider"])} className="h-[44px] rounded-xl border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20">
-                    <option value="heuristic">Local heuristic</option>
-                    <option value="openai">OpenAI</option>
-                  </select>
-                </label>
+                <div className="rounded-xl border border-border bg-surface-1 p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Cpu className="h-4 w-4 text-foreground/80" />
+                        <span className="text-sm font-medium text-foreground">AI Director Engine</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">OpenAI phân tích ngữ nghĩa sâu hơn; Heuristic chạy local tức thì không cần API key.</p>
+                    </div>
+                    <select
+                      value={form.llmProvider}
+                      onChange={(event) => update("llmProvider", event.target.value as StudioFormState["llmProvider"])}
+                      className="h-10 rounded-xl border border-border bg-surface-2 px-3 text-xs text-foreground outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 cursor-pointer"
+                    >
+                      <option value="heuristic">Local Heuristic (Mặc định · Không cần key)</option>
+                      <option value="gemini">Google Gemini 1.5 (Nhanh & Rẻ)</option>
+                      <option value="openai">OpenAI GPT (Semantic director)</option>
+                    </select>
+                  </div>
+                  {form.llmProvider === "openai" && (
+                    <div className="mt-3 flex items-start gap-2.5 rounded-lg bg-surface-2 border border-border p-3 text-xs text-muted-foreground">
+                      <KeyRound className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                      <div>
+                        Cần khai báo <code className="font-mono text-foreground">OPENAI_API_KEY</code> và <code className="font-mono text-foreground">LLM_PROVIDER=openai</code> trong file <code className="font-mono text-foreground">.env</code> để kích hoạt.
+                      </div>
+                    </div>
+                  )}
+                  {form.llmProvider === "gemini" && (
+                    <div className="mt-3 flex items-start gap-2.5 rounded-lg bg-surface-2 border border-border p-3 text-xs text-muted-foreground">
+                      <KeyRound className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                      <div>
+                        Cần khai báo <code className="font-mono text-foreground">GOOGLE_GENERATIVE_AI_API_KEY</code> trong file <code className="font-mono text-foreground">.env</code> để kích hoạt.
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {step === 3 && (
               <div className="space-y-5">
                 {!draft ? (
-                  <div className="rounded-3xl border border-border bg-surface-1 p-8 sm:p-10 text-center shadow-sm">
-                    <div className="mx-auto h-16 w-16 rounded-2xl bg-accent/10 grid place-items-center mb-5">
-                      <WandSparkles className="h-8 w-8 text-accent" aria-hidden="true" />
+                  <div className="rounded-2xl border border-border bg-surface-1 p-8 sm:p-10 text-center shadow-xs">
+                    <div className="mx-auto h-12 w-12 rounded-xl bg-surface-2 border border-border grid place-items-center mb-4">
+                      <WandSparkles className="h-6 w-6 text-foreground" aria-hidden="true" />
                     </div>
-                    <h2 className="text-xl font-semibold">Tạo scene plan trước</h2>
-                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">Bước này chỉ phân tích script và tạo draft. Chưa gọi TTS và chưa render video.</p>
-                    <button type="button" onClick={createDraft} disabled={busy !== null} className="mt-6 min-h-[48px] rounded-xl bg-accent px-6 font-semibold text-accent-foreground hover:bg-accent-hover transition-colors disabled:opacity-50 inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                      {busy === "draft" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Tạo draft
+                    <h2 className="text-base font-semibold text-foreground">Tạo Storyboard Scene Plan</h2>
+                    <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-muted-foreground">
+                      AI Director sẽ phân tích nội dung script thành từng scene độc lập với visual, voice direction và nhịp timing trước khi render.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={createDraft}
+                      disabled={busy !== null}
+                      className="mt-6 min-h-[42px] rounded-xl bg-foreground px-5 font-semibold text-background hover:bg-foreground/90 transition-colors disabled:opacity-50 inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background text-xs"
+                    >
+                      {busy === "draft" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      <span>Khởi tạo Draft Plan</span>
                     </button>
                   </div>
                 ) : (
                   <>
                     <div className="flex items-center justify-between gap-4">
-                      <div><h2 className="font-semibold">Scene plan</h2><p className="mt-1 text-xs text-muted-foreground/70">{draft.scenes.length} scenes · {draft.format} · {draft.fps} fps</p></div>
-                      <button type="button" onClick={createDraft} disabled={busy !== null} className="min-h-[44px] px-4 rounded-xl border border-border text-sm hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50">Tạo lại</button>
+                      <div>
+                        <h2 className="text-sm font-semibold text-foreground">Storyboard Scene Plan</h2>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{draft.scenes.length} phân cảnh · {draft.format} · {draft.fps} FPS</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={createDraft}
+                        disabled={busy !== null}
+                        className="h-8 px-3 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      >
+                        Tạo lại
+                      </button>
                     </div>
+
                     <div className="space-y-2">
-                      {draft.scenes.map((scene, index) => (
-                        <div key={scene.id} className="rounded-2xl border border-border bg-surface-1 p-4 flex gap-4 transition-colors hover:border-border/80">
-                          <div className="h-9 w-9 rounded-xl bg-surface-2 grid place-items-center text-xs text-muted-foreground shrink-0 font-medium">{String(index + 1).padStart(2, "0")}</div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2"><span className="font-medium text-foreground">{scene.headline}</span><span className="rounded-full bg-surface-2 px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">{scene.type}</span></div>
-                            <p className="mt-2 text-sm leading-6 text-muted-foreground/80 line-clamp-2">{scene.narration}</p>
+                      {draft.scenes.map((scene, index) => {
+                        const meta = sceneTypeMeta(scene.type);
+                        const IconComponent = meta.icon;
+                        return (
+                          <div
+                            key={scene.id}
+                            className="rounded-xl border border-border bg-surface-1 p-3.5 flex gap-3.5 transition-colors hover:border-border/80 hover:bg-surface-2"
+                          >
+                            <div className="h-8 w-8 rounded-lg bg-surface-2 border border-border/80 grid place-items-center text-xs font-mono font-medium text-foreground/80 shrink-0" title={`Scene ${index + 1}`}>
+                              {String(index + 1).padStart(2, "0")}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs font-semibold text-foreground">{scene.headline}</span>
+                                <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium border ${meta.badgeBg} ${meta.textCol}`}>
+                                  <IconComponent className="h-3 w-3" />
+                                  <span>{meta.label}</span>
+                                </span>
+                                {scene.voiceDirection && (
+                                  <span className="rounded-md bg-surface-2 border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground" title="Voice direction">
+                                    {scene.voiceDirection.emotion} · {scene.voiceDirection.pace}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground line-clamp-2">{scene.narration}</p>
+                            </div>
+                            <div className="text-[11px] font-mono tabular-nums text-muted-foreground/70 shrink-0 pt-0.5">
+                              ~{scene.estimatedDurationSeconds.toFixed(1)}s
+                            </div>
                           </div>
-                          <div className="text-xs tabular-nums text-muted-foreground/60">~{scene.estimatedDurationSeconds.toFixed(1)}s</div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                    <button type="button" onClick={renderVideo} disabled={busy !== null} className="w-full min-h-[56px] rounded-2xl bg-accent text-accent-foreground font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background">
-                      {busy === "render" ? <Loader2 className="h-5 w-5 animate-spin" /> : <CirclePlay className="h-5 w-5" />}
-                      {busy === "render" ? "Đang tạo TTS và render..." : "Duyệt draft và render video"}
+
+                    <button
+                      type="button"
+                      onClick={renderVideo}
+                      disabled={busy !== null}
+                      className="w-full min-h-[48px] rounded-xl bg-foreground text-background font-semibold hover:bg-foreground/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      {busy === "render" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CirclePlay className="h-4 w-4" />}
+                      <span>{busy === "render" ? "Đang xử lý TTS & Render Remotion..." : "Duyệt draft và Render Video"}</span>
                     </button>
                   </>
                 )}
               </div>
             )}
 
-            {error && <div role="alert" className="mt-6 rounded-xl border border-destructive/25 bg-destructive/10 p-4 text-sm leading-6 text-destructive-foreground whitespace-pre-wrap">{error}</div>}
+            {error && <div role="alert" className="mt-6 rounded-xl border border-destructive/25 bg-destructive/10 p-3.5 text-xs leading-relaxed text-destructive-foreground whitespace-pre-wrap">{error}</div>}
 
-            <div className="mt-10 flex items-center justify-between border-t border-border/60 pt-6">
-              <button type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0 || busy !== null} className="min-h-[44px] rounded-xl px-3 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"><ArrowLeft className="h-4 w-4" /> Quay lại</button>
-              {step < 3 && <button type="button" onClick={() => setStep((current) => Math.min(3, current + 1))} disabled={!canContinue} className="min-h-[48px] rounded-xl bg-foreground px-5 font-semibold text-background hover:bg-foreground/90 transition-colors disabled:opacity-35 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background">Tiếp tục <ArrowRight className="h-4 w-4" /></button>}
+            <div className="mt-8 flex items-center justify-between border-t border-border/60 pt-5">
+              <button
+                type="button"
+                onClick={() => setStep((current) => Math.max(0, current - 1))}
+                disabled={step === 0 || busy !== null}
+                className="h-10 rounded-xl px-3.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Quay lại</span>
+              </button>
+              {step < 3 && (
+                <button
+                  type="button"
+                  onClick={() => setStep((current) => Math.min(3, current + 1))}
+                  disabled={!canContinue}
+                  className="h-10 rounded-xl bg-foreground px-4 text-xs font-semibold text-background hover:bg-foreground/90 transition-colors disabled:opacity-35 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <span>Tiếp tục</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </section>
 
-        <aside className="border-t lg:border-t-0 lg:border-l border-border/60 bg-background-elevated p-5 lg:p-7 overflow-y-auto relative">
-          {/* Subtle top/left gradient for depth */}
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-surface-1 to-transparent opacity-50" aria-hidden="true" />
+        <aside className="border-t lg:border-t-0 lg:border-l border-border/60 bg-surface-1/40 p-4 sm:p-6 lg:p-7 overflow-y-auto relative">
+          <div className="relative z-10 flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Cinema Canvas</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono text-muted-foreground bg-surface-2 border border-border/60 px-2 py-0.5 rounded">
+                {form.format} · 30 FPS
+              </span>
+              <MonitorPlay className="h-3.5 w-3.5 text-muted-foreground/60" />
+            </div>
+          </div>
 
-          <div className="relative z-10 flex items-center justify-between"><span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Project preview</span><MonitorPlay className="h-4 w-4 text-muted-foreground/50" /></div>
-
-          <div className={`relative z-10 mx-auto mt-6 overflow-hidden rounded-[26px] border border-border bg-background shadow-2xl transition-all duration-300 ${form.format === "9:16" ? "aspect-[9/16] max-h-[490px]" : form.format === "1:1" ? "aspect-square" : "aspect-video"}`}>
+          <div className={`relative z-10 mx-auto mt-5 overflow-hidden rounded-2xl border border-border bg-neutral-950 shadow-2xl transition-all duration-300 ${form.format === "9:16" ? "aspect-[9/16] max-h-[460px]" : form.format === "1:1" ? "aspect-square" : "aspect-video"}`}>
             {videoUrl ? (
               <video src={videoUrl} controls className="h-full w-full object-contain bg-black" />
             ) : (
-              <div className="h-full flex flex-col justify-between p-6" style={{background: `linear-gradient(145deg, ${STYLE_PACKS.find((style) => style.id === form.stylePack)?.colors[0]}, var(--background))`}}>
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-foreground/70"><span>{form.projectType.replace(/-/gu, " ")}</span><span>{form.format}</span></div>
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-accent">{form.language === "vi" ? "Bản nháp" : "Draft"}</div>
-                  <div className="mt-3 text-3xl font-semibold leading-tight tracking-[-0.04em] break-words text-foreground shadow-sm">{form.title || "Untitled video project"}</div>
-                  <div className="mt-5 h-1 w-24 rounded-full bg-accent" />
+              <div
+                className="h-full flex flex-col justify-between p-5 relative overflow-hidden"
+                style={{
+                  background: `radial-gradient(ellipse at top left, ${STYLE_PACKS.find((style) => style.id === form.stylePack)?.colors[0]}44, #000000 80%)`,
+                }}
+              >
+                <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-foreground/70">
+                  <span className="bg-surface-2 border border-border/60 px-2 py-0.5 rounded-full">{form.projectType.replace(/-/gu, " ")}</span>
+                  <span>CANVAS PREVIEW</span>
                 </div>
-                <div className="text-xs text-foreground/60">{wordCount} từ · {selectedVoice.label}</div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">{form.language === "vi" ? "Dự án" : "Project"}</div>
+                  <div className="mt-1.5 text-xl font-semibold leading-snug tracking-tight text-foreground line-clamp-3">
+                    {form.title || "Untitled video project"}
+                  </div>
+                  <div className="mt-3 h-0.5 w-12 rounded-full bg-foreground/40" />
+                </div>
+                <div className="text-[11px] text-muted-foreground flex items-center justify-between">
+                  <span>{wordCount} từ</span>
+                  <span className="truncate max-w-[130px]">{selectedVoice.label}</span>
+                </div>
               </div>
             )}
           </div>
 
-          <dl className="relative z-10 mt-8 divide-y divide-border/60 text-sm">
-            <div className="py-3 flex justify-between gap-4"><dt className="text-muted-foreground">Project type</dt><dd className="text-right text-foreground font-medium">{PROJECT_TYPES.find((item) => item.id === form.projectType)?.label}</dd></div>
-            <div className="py-3 flex justify-between gap-4"><dt className="text-muted-foreground">Voice</dt><dd className="text-right text-foreground font-medium">{selectedVoice.label}</dd></div>
-            <div className="py-3 flex justify-between gap-4"><dt className="text-muted-foreground">Style</dt><dd className="text-right text-foreground font-medium">{STYLE_PACKS.find((item) => item.id === form.stylePack)?.label}</dd></div>
-            <div className="py-3 flex justify-between gap-4"><dt className="text-muted-foreground">Director</dt><dd className="text-right text-foreground font-medium">{form.llmProvider === "openai" ? "OpenAI" : "Local heuristic"}</dd></div>
+          <dl className="relative z-10 mt-6 divide-y border-t border-border/60 text-xs">
+            <div className="py-2.5 flex justify-between gap-3">
+              <dt className="text-muted-foreground">Loại hình</dt>
+              <dd className="text-right text-foreground font-medium">{PROJECT_TYPES.find((item) => item.id === form.projectType)?.label}</dd>
+            </div>
+            <div className="py-2.5 flex justify-between gap-3">
+              <dt className="text-muted-foreground">Giọng đọc</dt>
+              <dd className="text-right text-foreground font-medium truncate max-w-[180px]">{selectedVoice.label}</dd>
+            </div>
+            <div className="py-2.5 flex justify-between gap-3">
+              <dt className="text-muted-foreground">Visual Style</dt>
+              <dd className="text-right text-foreground font-medium">{STYLE_PACKS.find((item) => item.id === form.stylePack)?.label}</dd>
+            </div>
+            <div className="py-2.5 flex justify-between gap-3">
+              <dt className="text-muted-foreground">Director Engine</dt>
+              <dd className="text-right text-foreground font-medium">{form.llmProvider === "openai" ? "OpenAI GPT" : form.llmProvider === "gemini" ? "Google Gemini" : "Local Heuristic"}</dd>
+            </div>
           </dl>
 
           {outputPath && (
-            <div className="relative z-10 mt-6 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-300">
-              <div className="flex items-center gap-2 font-medium"><Check className="h-4 w-4" /> Render hoàn tất</div>
-              <div className="mt-2 text-xs text-emerald-200/60 break-all">{outputPath}</div>
-              {videoUrl && <a href={videoUrl} download className="mt-3 min-h-[44px] inline-flex items-center gap-2 text-foreground underline underline-offset-4 hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 rounded-md">Tải video <ChevronRight className="h-4 w-4" /></a>}
+            <div className="relative z-10 mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 text-xs text-emerald-300">
+              <div className="flex items-center gap-2 font-medium">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span>Render video hoàn tất</span>
+              </div>
+              <div className="mt-1.5 font-mono text-[11px] text-emerald-200/70 break-all">{outputPath}</div>
+              {videoUrl && (
+                <a
+                  href={videoUrl}
+                  download
+                  className="mt-2.5 inline-flex items-center gap-1.5 text-xs text-foreground font-medium hover:underline underline-offset-4"
+                >
+                  <span>Tải video về máy</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </a>
+              )}
             </div>
           )}
         </aside>

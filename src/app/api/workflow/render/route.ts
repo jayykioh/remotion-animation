@@ -14,7 +14,7 @@ const RequestSchema = z.object({
   format: z.enum(["9:16", "16:9", "1:1"]),
   language: z.enum(["vi", "en"]),
   llmProvider: z.enum(["heuristic", "openai"]),
-  voiceProvider: z.enum(["system", "openai", "elevenlabs", "fpt", "local-http", "mock"]),
+  voiceProvider: z.enum(["auto", "system", "openai", "elevenlabs", "fpt", "local-http", "mock"]),
   voiceId: z.string().max(200),
 });
 

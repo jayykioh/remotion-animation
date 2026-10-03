@@ -1,6 +1,7 @@
 import type {DirectorPlan, DirectorScene, SceneType} from "./schema";
 import type {DirectorInput, DirectorProvider} from "./types";
 import {applyProductionProfile} from "./profiles";
+import {parseStructuredStory} from "./structured-script";
 
 const COLORS = {
   background: "#0B0D12",
@@ -101,17 +102,22 @@ export class HeuristicDirector implements DirectorProvider {
   readonly name = "heuristic";
 
   async createPlan(input: DirectorInput): Promise<DirectorPlan> {
-    const scenes: DirectorScene[] = splitScript(input.script).map((narration, index) => {
-      const type = classify(narration, index);
+    const structured = parseStructuredStory(input.script);
+    const beats = structured?.scenes || splitScript(input.script).map((narration) => ({narration, visualIntent: ""}));
+    const scenes: DirectorScene[] = beats.map((beat, index) => {
+      const narration = beat.narration;
+      const analysisText = `${narration} ${beat.visualIntent}`.trim();
+      const type = classify(analysisText, index);
       const wordCount = Math.max(words(narration).length, 1);
+      const scary = /sợ|đêm|tối|mất|dấu chân|bàn thờ|im lặng|dark|fear|death|ghost/u.test(analysisText.toLowerCase());
       return {
         id: `scene-${String(index + 1).padStart(2, "0")}`,
         narration,
-        headline: headlineFrom(narration),
+        headline: headlineFrom(beat.visualIntent || narration),
         type,
-        visualIntent: `Turn the narration into a clear ${type.replace("-", " ")} beat`,
-        keywords: pickKeywords(narration),
-        style: type === "chart" || type === "diagram" ? "technical" : index === 0 ? "dramatic" : "editorial",
+        visualIntent: beat.visualIntent || `Turn the narration into a clear ${type.replace("-", " ")} beat`,
+        keywords: pickKeywords(analysisText),
+        style: scary ? "dramatic" : type === "chart" || type === "diagram" ? "technical" : index === 0 ? "dramatic" : "editorial",
         estimatedDurationSeconds: Math.min(14, Math.max(2.5, wordCount / 2.6 + 0.8)),
         ...(type === "chart" ? {chartData: chartDataFrom(narration)} : {}),
       };
@@ -119,7 +125,7 @@ export class HeuristicDirector implements DirectorProvider {
 
     return applyProductionProfile({
       version: 1,
-      title: titleFrom(input.script, input.sourceName),
+      title: structured?.title || titleFrom(input.script, input.sourceName),
       format: input.format,
       fps: input.fps,
       theme: COLORS,

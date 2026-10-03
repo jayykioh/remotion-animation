@@ -4,7 +4,7 @@ import {renderMedia, selectComposition} from "@remotion/renderer";
 import {mkdir, readFile, writeFile} from "node:fs/promises";
 import {basename, dirname, extname, join, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
-import {createDirector, RenderPlanSchema, type RenderPlan} from "../director/index";
+import {createDirector, parseStructuredStory, RenderPlanSchema, type RenderPlan} from "../director/index";
 import {createTTSProvider} from "../tts/index";
 
 interface CliOptions {
@@ -103,6 +103,8 @@ const main = async () => {
   const fps = Number(process.env.VIDEO_FPS || 30);
   const format = process.env.VIDEO_FORMAT === "16:9" || process.env.VIDEO_FORMAT === "1:1" ? process.env.VIDEO_FORMAT : "9:16";
   const director = createDirector(options.llm);
+  const structuredStory = parseStructuredStory(script);
+  const narrationSource = structuredStory?.scenes.map((scene) => scene.narration).join("\n\n") || script;
   console.log(`1/5 Director (${director.name}) is planning scenes...`);
   const draftPlan = await director.createPlan({
     script,
@@ -115,7 +117,7 @@ const main = async () => {
     voiceProvider: options.tts,
     voiceId: options.voice,
   });
-  assertNarrationCoverage(script, draftPlan);
+  assertNarrationCoverage(narrationSource, draftPlan);
 
   const runId = slugify(basename(absoluteScriptPath, extname(absoluteScriptPath)));
   const generatedDir = join(projectRoot, "generated", runId);
@@ -163,7 +165,7 @@ const main = async () => {
     totalDurationInFrames: renderedScenes.reduce((sum, scene) => sum + scene.durationInFrames, 0),
     ttsProvider: [...providers].join("+") || tts.name,
   });
-  assertNarrationCoverage(script, renderPlan);
+  assertNarrationCoverage(narrationSource, renderPlan);
   await Promise.all([
     writeFile(join(generatedDir, "scene-plan.json"), JSON.stringify(renderPlan, null, 2)),
     writeFile(join(projectRoot, "generated", "scene-plan.json"), JSON.stringify(renderPlan, null, 2)),

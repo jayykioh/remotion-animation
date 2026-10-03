@@ -14,6 +14,7 @@ export const STYLE_PACKS = [
 ] as const;
 
 export const VOICES = [
+  {id: "auto-draft-vi", provider: "auto", voiceId: "", language: "vi", label: "Auto local", detail: "Windows voice nếu có · tự fallback để E2E không bị chặn", quality: "No API required"},
   {id: "fpt-banmai", provider: "fpt", voiceId: "banmai", language: "vi", label: "Ban Mai", detail: "Nữ miền Bắc · rõ, hợp tóm tắt", quality: "Vietnamese native"},
   {id: "fpt-lannhi", provider: "fpt", voiceId: "lannhi", language: "vi", label: "Lan Nhi", detail: "Nữ miền Nam · mềm và gần gũi", quality: "Vietnamese native"},
   {id: "fpt-leminh", provider: "fpt", voiceId: "leminh", language: "vi", label: "Lê Minh", detail: "Nam miền Bắc · trầm, documentary", quality: "Vietnamese native"},
@@ -41,7 +42,7 @@ export interface StudioFormState {
   voiceOptionId: string;
   elevenLabsVoiceId: string;
   stylePack: StylePack;
-  llmProvider: "heuristic" | "openai";
+  llmProvider: "heuristic" | "openai" | "gemini";
 }
 
 export const DEFAULT_STUDIO_FORM: StudioFormState = {
@@ -50,7 +51,7 @@ export const DEFAULT_STUDIO_FORM: StudioFormState = {
   format: "9:16",
   script: "",
   language: "vi",
-  voiceOptionId: "fpt-banmai",
+  voiceOptionId: "auto-draft-vi",
   elevenLabsVoiceId: "",
   stylePack: "editorial-dark",
   llmProvider: "heuristic",

@@ -25,11 +25,21 @@ const sceneTypeForProfile = (
 
 const storyboardFor = (scene: DirectorScene, index: number): NonNullable<DirectorScene["storyboard"]> => {
   const text = `${scene.narration} ${scene.visualIntent}`.toLowerCase();
-  const storyObjects = [
-    "mâm", "bát", "cháo", "hương", "cửa", "nhà", "đèn", "khói", "người", "phố",
+  const objectVocabulary = [
+    "dấu chân", "ảnh", "bàn thờ", "rèm", "cửa sổ", "đèn", "sông", "tre", "tèo", "bà ngoại", "cô gái",
+    "mâm", "bát", "cháo", "hương", "cửa", "nhà", "khói", "người", "phố",
     "tray", "bowl", "food", "incense", "door", "house", "light", "smoke", "person", "street",
-  ].filter((object) => text.includes(object));
-  const setting = /ngoài|vỉa hè|outside|exterior/u.test(text)
+  ];
+  const visualText = scene.visualIntent.toLowerCase();
+  const visualObjects = objectVocabulary.filter((object) => visualText.includes(object));
+  const storyObjects = objectVocabulary.filter((object) => text.includes(object));
+  const setting = /dấu chân|cổng|sân|footprint|yard/u.test(text)
+    ? "exterior"
+    : /bàn thờ|ảnh cũ|khung kính|altar|portrait/u.test(text)
+      ? "interior"
+      : /sông|bờ|tre|river|water/u.test(text)
+    ? "nature"
+    : /ngoài|vỉa hè|outside|exterior/u.test(text)
     ? "exterior"
     : /nhà|cửa|phòng|bếp|room|house|door|inside/u.test(text)
       ? "interior"
@@ -40,7 +50,8 @@ const storyboardFor = (scene: DirectorScene, index: number): NonNullable<Directo
         : /năm \d{3,4}|lịch sử|archive|history/u.test(text)
           ? "archival"
           : "abstract";
-  const objects = [...new Set([...storyObjects, ...scene.keywords])];
+  const groundedObjects = visualObjects.length > 0 ? visualObjects : storyObjects;
+  const objects = [...new Set([...groundedObjects, ...(groundedObjects.length < 2 ? scene.keywords : [])])];
   return {
     setting,
     focus: objects[0] || scene.headline,
