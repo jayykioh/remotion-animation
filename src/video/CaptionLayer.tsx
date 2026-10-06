@@ -1,5 +1,5 @@
 import React from "react";
-import {useCurrentFrame, useVideoConfig} from "remotion";
+import {Easing, interpolate, useCurrentFrame, useVideoConfig} from "remotion";
 import type {RenderPlan, RenderScene} from "../../director/schema";
 import {FONT_FAMILY} from "./SceneFrame";
 
@@ -14,6 +14,11 @@ export const CaptionLayer: React.FC<{
   const active = captions.find((caption) => time >= caption.startSeconds && time < caption.endSeconds);
   if (!active) return null;
   const storyMode = projectType === "animated-story";
+  const pageEnter = interpolate(time, [active.startSeconds, active.startSeconds + 0.16], [0, 1], {
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   return (
     <div
@@ -25,6 +30,8 @@ export const CaptionLayer: React.FC<{
         display: "flex",
         justifyContent: "center",
         zIndex: 20,
+        opacity: pageEnter,
+        translate: `0 ${interpolate(pageEnter, [0, 1], [18, 0], {extrapolateLeft: "clamp", extrapolateRight: "clamp"})}px`,
       }}
     >
       <div
@@ -47,7 +54,7 @@ export const CaptionLayer: React.FC<{
         {active.words?.length
           ? active.words.map((word, index) => {
               const isActive = time >= word.startSeconds && time < word.endSeconds;
-              return <React.Fragment key={`${word.startSeconds}-${index}`}><span style={{color: isActive ? theme.accent : theme.foreground}}>{word.text}</span>{index < active.words!.length - 1 ? " " : ""}</React.Fragment>;
+              return <React.Fragment key={`${word.startSeconds}-${index}`}><span style={{display: "inline-block", color: isActive ? theme.accent : theme.foreground, scale: isActive ? 1.06 : 1, opacity: isActive ? 1 : 0.82}}>{word.text}</span>{index < active.words!.length - 1 ? " " : ""}</React.Fragment>;
             })
           : active.text}
       </div>

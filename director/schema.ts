@@ -16,6 +16,15 @@ export const ChartDatumSchema = z.object({
   value: z.number().finite(),
 });
 
+export const NarrativeBeatSchema = z.object({
+  role: z.enum(["hook", "context", "escalation", "evidence", "turn", "resolution"]),
+  intensity: z.number().min(0).max(1),
+  progress: z.number().min(0).max(1),
+  emphasis: z.array(z.string().min(1)).max(3),
+  continuityKey: z.string().min(1),
+  transition: z.enum(["cut", "dissolve", "push", "wipe", "match-cut"]),
+});
+
 export const DirectorSceneSchema = z.object({
   id: z.string().min(1),
   narration: z.string().min(1),
@@ -25,6 +34,7 @@ export const DirectorSceneSchema = z.object({
   keywords: z.array(z.string()).min(1).max(6),
   style: z.enum(["dramatic", "editorial", "energetic", "calm", "technical"]),
   estimatedDurationSeconds: z.number().min(1).max(30),
+  beat: NarrativeBeatSchema.optional(),
   chartData: z.array(ChartDatumSchema).max(8).optional(),
   imageUrl: z.string().url().optional(),
   voiceDirection: z
@@ -45,6 +55,18 @@ export const DirectorSceneSchema = z.object({
       lighting: z.enum(["low-key", "warm", "daylight", "spotlight"]),
     })
     .optional(),
+  illustration: z.object({
+    atmosphere: z.array(z.enum(["rain", "fog", "snow", "dust", "none"])),
+    environment: z.enum(["mountain", "interior", "city", "abstract"]),
+    elements: z.array(z.object({
+      emoji: z.string(),
+      size: z.number(),
+      x: z.number(),
+      y: z.number(),
+      animation: z.enum(["none", "float", "sweep", "pulse"]),
+      triggerWord: z.string().optional()
+    }))
+  }).optional()
 });
 
 export const DirectorPlanSchema = z.object({
@@ -92,6 +114,13 @@ export const RenderSceneSchema = DirectorSceneSchema.extend({
   durationSeconds: z.number().positive(),
   durationInFrames: z.number().int().positive(),
   audioSrc: z.string().optional(),
+  timing: z
+    .object({
+      leadInSeconds: z.number().min(0).max(2),
+      narrationSeconds: z.number().positive(),
+      tailSeconds: z.number().min(0).max(2),
+    })
+    .optional(),
   captions: z.array(CaptionSchema),
 });
 

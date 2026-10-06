@@ -14,3 +14,4 @@ export * from "./schema";
 export * from "./types";
 export * from "./structured-script";
 export * from "./profiles";
+export * from "./progression";

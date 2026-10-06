@@ -1,5 +1,6 @@
 import type {DirectorPlan, DirectorScene} from "./schema";
 import type {DirectorInput} from "./types";
+import {orchestrateNarrative} from "./progression";
 
 const THEMES = {
   "editorial-dark": {background: "#0B0D12", foreground: "#F6F2EA", accent: "#FF5C35", muted: "#8F96A3"},
@@ -63,9 +64,10 @@ const storyboardFor = (scene: DirectorScene, index: number): NonNullable<Directo
 };
 
 const voiceDirectionFor = (scene: DirectorScene): NonNullable<DirectorScene["voiceDirection"]> => {
-  const emotion = scene.style === "dramatic" ? "dramatic" : scene.style === "energetic" ? "urgent" : scene.style === "calm" ? "calm" : "reflective";
-  const pace = scene.style === "energetic" ? "fast" : scene.style === "calm" || scene.style === "dramatic" ? "slow" : "medium";
-  const energy = scene.style === "energetic" ? 0.82 : scene.style === "dramatic" ? 0.68 : 0.48;
+  const role = scene.beat?.role;
+  const emotion = role === "turn" ? "urgent" : role === "resolution" ? "warm" : scene.style === "dramatic" ? "dramatic" : scene.style === "energetic" ? "urgent" : scene.style === "calm" ? "calm" : "reflective";
+  const pace = role === "turn" || scene.style === "energetic" ? "fast" : role === "resolution" || scene.style === "calm" || scene.style === "dramatic" ? "slow" : "medium";
+  const energy = role === "turn" ? 0.82 : role === "hook" ? 0.72 : role === "resolution" ? 0.52 : scene.style === "energetic" ? 0.82 : scene.style === "dramatic" ? 0.68 : 0.48;
   return {
     emotion,
     pace,
@@ -78,6 +80,18 @@ export const applyProductionProfile = (plan: DirectorPlan, input: DirectorInput)
   const projectType = input.projectType || "fast-summary";
   const stylePack = input.stylePack || "editorial-dark";
   const language = input.language || "en";
+  const scenes = orchestrateNarrative(plan.scenes.map((scene, index) => {
+      const type = sceneTypeForProfile(scene, index, plan.scenes.length, projectType);
+      return {
+        ...scene,
+        type,
+        ...(type === "story-illustration" ? {storyboard: scene.storyboard || storyboardFor(scene, index)} : {}),
+        visualIntent: `${scene.visualIntent}; follow the ${stylePack} visual language for a ${projectType} project`,
+      };
+    })).map((scene) => ({
+      ...scene,
+      voiceDirection: scene.voiceDirection || voiceDirectionFor(scene),
+    }));
   return {
     ...plan,
     theme: THEMES[stylePack],
@@ -88,15 +102,6 @@ export const applyProductionProfile = (plan: DirectorPlan, input: DirectorInput)
       voiceProvider: input.voiceProvider,
       voiceId: input.voiceId,
     },
-    scenes: plan.scenes.map((scene, index) => {
-      const type = sceneTypeForProfile(scene, index, plan.scenes.length, projectType);
-      return {
-        ...scene,
-        type,
-        voiceDirection: scene.voiceDirection || voiceDirectionFor(scene),
-        ...(type === "story-illustration" ? {storyboard: scene.storyboard || storyboardFor(scene, index)} : {}),
-        visualIntent: `${scene.visualIntent}; follow the ${stylePack} visual language for a ${projectType} project`,
-      };
-    }),
+    scenes,
   };
 };

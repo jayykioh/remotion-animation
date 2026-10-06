@@ -5,6 +5,8 @@ import {RenderPlanSchema} from "../../director/schema";
 import {z} from "zod";
 import {CaptionLayer} from "./CaptionLayer";
 import {SceneRenderer} from "./SceneRenderer";
+import {SceneTransition} from "./SceneTransition";
+import {NarrativeProgress} from "./NarrativeProgress";
 
 export interface VideoAgentProps {
   [key: string]: unknown;
@@ -22,8 +24,14 @@ export const VideoAgent: React.FC<VideoAgentProps> = ({plan}) => {
         from += scene.durationInFrames;
         return (
           <Sequence key={scene.id} from={start} durationInFrames={scene.durationInFrames} premountFor={plan.fps}>
-            <SceneRenderer scene={scene} theme={plan.theme} />
-            {scene.audioSrc ? <Audio src={staticFile(scene.audioSrc)} /> : null}
+            <SceneTransition scene={scene} theme={plan.theme}>
+              <SceneRenderer scene={scene} theme={plan.theme} />
+            </SceneTransition>
+            {scene.audioSrc ? (
+              <Sequence from={Math.round((scene.timing?.leadInSeconds ?? 0) * plan.fps)} layout="none">
+                <Audio src={staticFile(scene.audioSrc)} />
+              </Sequence>
+            ) : null}
             <CaptionLayer captions={scene.captions} theme={plan.theme} projectType={plan.production?.projectType} />
           </Sequence>
         );

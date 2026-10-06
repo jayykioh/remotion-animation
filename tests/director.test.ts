@@ -16,6 +16,9 @@ test("heuristic director creates a valid, mixed scene plan", async () => {
   assert.equal(plan.scenes[0].type, "chart");
   assert.equal(plan.scenes[1].type, "diagram");
   assert.equal(plan.scenes[2].type, "custom-motion");
+  assert.deepEqual(plan.scenes.map((scene) => scene.beat?.role), ["hook", "turn", "resolution"]);
+  assert.ok(plan.scenes.every((scene) => scene.beat));
+  assert.deepEqual(plan.scenes.map((scene) => scene.beat?.progress), [0.333, 0.667, 1]);
 });
 
 test("heuristic director keeps narration in order", async () => {
@@ -43,6 +46,8 @@ test("production profile applies the selected story format and visual foundation
   assert.ok(plan.scenes.every((scene) => scene.type === "story-illustration"));
   assert.ok(plan.scenes.every((scene) => scene.storyboard));
   assert.ok(plan.scenes.every((scene) => scene.voiceDirection));
+  assert.equal(plan.scenes.at(-1)?.beat?.role, "resolution");
+  assert.ok((plan.scenes.at(-1)?.beat?.progress ?? 0) === 1);
 });
 
 test("structured story keeps narration separate from visual direction", () => {

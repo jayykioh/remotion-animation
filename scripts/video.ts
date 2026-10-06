@@ -85,6 +85,14 @@ const makeCaptionPages = (text: string, durationSeconds: number, alignment?: Ali
   return pages;
 };
 
+const timingForScene = (scene: RenderPlan["scenes"][number] | {beat?: RenderPlan["scenes"][number]["beat"]; narration: string}, narrationSeconds: number) => {
+  const role = scene.beat?.role;
+  const leadInSeconds = role === "hook" ? 0.18 : role === "turn" ? 0.28 : role === "resolution" ? 0.24 : 0.16;
+  const punctuationPause = /[.!?…]\s*$/u.test(scene.narration) ? 0.16 : 0.08;
+  const tailSeconds = Math.min(0.72, punctuationPause + (role === "resolution" ? 0.38 : role === "turn" ? 0.2 : 0.12));
+  return {leadInSeconds, narrationSeconds, tailSeconds};
+};
+
 const assertNarrationCoverage = (script: string, plan: RenderPlan | {scenes: Array<{narration: string}>}) => {
   const normalize = (value: string) => value.replace(/\s+/gu, " ").trim().toLowerCase();
   const sourceWords = normalize(script).match(/[\p{L}\p{N}]+/gu) ?? [];
@@ -149,13 +157,25 @@ const main = async () => {
       direction: scene.voiceDirection,
     });
     providers.add(result.provider);
-    const durationSeconds = Math.max(result.durationSeconds + 0.3, 1.2);
+    const timing = timingForScene(scene, result.durationSeconds);
+    const durationSeconds = Math.max(timing.leadInSeconds + result.durationSeconds + timing.tailSeconds, 1.2);
+    const captions = makeCaptionPages(scene.narration, result.durationSeconds, result.alignment).map((caption) => ({
+      ...caption,
+      startSeconds: caption.startSeconds + timing.leadInSeconds,
+      endSeconds: caption.endSeconds + timing.leadInSeconds,
+      words: caption.words.map((word) => ({
+        ...word,
+        startSeconds: word.startSeconds + timing.leadInSeconds,
+        endSeconds: word.endSeconds + timing.leadInSeconds,
+      })),
+    }));
     renderedScenes.push({
       ...scene,
       durationSeconds,
       durationInFrames: Math.ceil(durationSeconds * draftPlan.fps),
       audioSrc: `generated/${runId}/${audioFileName}`,
-      captions: makeCaptionPages(scene.narration, result.durationSeconds, result.alignment),
+      timing,
+      captions,
     });
   }
 

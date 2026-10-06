@@ -14,7 +14,7 @@ export const SceneFrame: React.FC<{
 }> = ({scene, theme, children, style, hideChrome = false}) => {
   const frame = useCurrentFrame();
   const {durationInFrames} = useVideoConfig();
-  const edgeOpacity = interpolate(
+  const legacyEdgeOpacity = interpolate(
     frame,
     [0, 8, Math.max(9, durationInFrames - 8), durationInFrames - 1],
     [0, 1, 1, 0],
@@ -29,11 +29,11 @@ export const SceneFrame: React.FC<{
         fontFamily: FONT_FAMILY,
         padding: "7%",
         overflow: "hidden",
-        opacity: edgeOpacity,
+        opacity: scene.beat ? 1 : legacyEdgeOpacity,
         ...style,
       }}
     >
-      {!hideChrome && <div
+      {!hideChrome && !scene.beat && <div
         style={{
           position: "absolute",
           top: "4.2%",

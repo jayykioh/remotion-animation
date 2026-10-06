@@ -6,7 +6,16 @@ import {SceneFrame} from "../SceneFrame";
 export const DiagramScene: React.FC<{scene: RenderScene; theme: RenderPlan["theme"]}> = ({scene, theme}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
-  const nodes = (scene.keywords.length >= 3 ? scene.keywords : ["Input", ...scene.keywords, "Outcome"]).slice(0, 4);
+  const groupedKeywords = scene.keywords.reduce<string[]>((groups, keyword) => {
+    const previous = groups.at(-1);
+    if (previous && /^\p{Lu}[\p{L}\p{N}-]*$/u.test(previous) && /^\p{Lu}[\p{L}\p{N}-]*$/u.test(keyword)) {
+      groups[groups.length - 1] = `${previous} ${keyword}`;
+    } else {
+      groups.push(keyword);
+    }
+    return groups;
+  }, []);
+  const nodes = (groupedKeywords.length >= 3 ? groupedKeywords : ["Input", ...groupedKeywords, "Outcome"]).slice(0, 4);
   const lineProgress = interpolate(frame, [8, 42], [0, 1], {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
 
   return (
